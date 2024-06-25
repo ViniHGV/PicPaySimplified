@@ -4,11 +4,14 @@ import com.picpay_simplified.application.authorizeTransaction.AuthorizeTransacti
 import com.picpay_simplified.application.dtos.Transaction.TransactionRequestDto;
 import com.picpay_simplified.domain.entities.Transaction;
 import com.picpay_simplified.domain.enums.UserTypes;
+import com.picpay_simplified.domain.strategy.CreateTransaction.CreateTransactionStrategy;
 import com.picpay_simplified.infra.repositories.TransactionRepository;
 import com.picpay_simplified.infra.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -17,6 +20,7 @@ public class CreateTransactionUseCaseImpl implements CreateTransactionUseCase{
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
     private final AuthorizeTransaction authorizeTransaction;
+    private List<CreateTransactionStrategy> createTransactionStrategyList;
 
     @Override
     @Transactional
@@ -29,14 +33,9 @@ public class CreateTransactionUseCaseImpl implements CreateTransactionUseCase{
                 () -> new RuntimeException("Usuário inválido!")
         );
 
-        if(payer.getValueInWallet().compareTo(transactionRequestDto.value()) < 0)
-            throw new RuntimeException("Saldo inválido!");
-
-        if(!payer.getUserType().equals(UserTypes.comum))
-            throw new RuntimeException("Lojistas não criam transações!");
-
-        if(payer.equals(receiver))
-            throw new RuntimeException("Não é possível fazer transações para si próprio!");
+        this.createTransactionStrategyList.forEach(validations ->
+                validations.execute(payer, receiver, transactionRequestDto.value())
+        );
 
         payer.debitValue(transactionRequestDto.value());
         this.userRepository.save(payer);
