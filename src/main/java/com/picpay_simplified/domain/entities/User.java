@@ -34,4 +34,11 @@ public class User {
 
     private UserTypes userType;
 
+    public void debitValue(BigDecimal value){
+        this.setValueInWallet(this.getValueInWallet().subtract(value));
+    }
+
+    public void creditValue(BigDecimal value){
+        this.setValueInWallet(this.getValueInWallet().add(value));
+    }
 }
