@@ -1,21 +1,18 @@
 package com.picpay_simplified.domain.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "tb_transactions")
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class Transaction {
 
     @Id
     @Column(unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
@@ -28,4 +25,10 @@ public class Transaction {
 
     @Column(nullable = false)
     private BigDecimal value;
+
+    public Transaction(User payer, User receiver, BigDecimal value){
+        this.payer = payer;
+        this.receiver = receiver;
+        this.value = value;
+    }
 }
